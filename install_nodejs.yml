@@ -1,0 +1,24 @@
+---
+- hosts: all
+  sudo: yes
+  tasks:
+  - name: 导入remi GPG 秘钥
+    rpm_key: "key={{ item }} state=present"
+    with_items:
+      - "http://rpms.famillecollet.com/RPM-GPG-KEY-remi"
+  - name: install Remi repo
+    command: "rpm -Uvh --force  {{ item.href }} creates= {{ item.creates }}"
+    with_items:
+      - { href: "https://rpms.famillecollet.com/enterprise/remi-release-6.rpm",creates: "/etc/yum.repos.d/remi.repo" } 
+  - name: 安装remi源
+    yum: name=epel-release state=present
+  - name: 关闭防火墙
+    service: name=iptables state=stopped
+  - name: 安装npm和nodejs
+    yum: name=npm state=present enablerepo=epel
+  - name: 使用taobao的npm
+    command: "npm config set registry https://registry.taobao.com"
+  - name: 关闭https的 
+    command: "npm config set stricyt-ssl false"
+  - name: 安装forever
+    npm: name=forever global=yes state=latest
